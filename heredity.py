@@ -127,6 +127,15 @@ def powerset(s):
         )
     ]
 
+def parent_pass(gene):
+    if gene == 0:  # the parent has no the-gene        
+        one_from_the_parent = PROBS["mutation"]
+    elif gene == 1:  # the parent has one the-gene        
+        one_from_the_parent = 0.5  # 0.5*(1 - PROBS["mutation"]) + 0.5*(PROBS["mutation"])
+    else:  # gene == 2  # the parent has two the-gene                         
+        one_from_the_parent = 1 - PROBS["mutation"]
+
+    return one_from_the_parent
 
 def joint_probability(people, one_gene, two_genes, have_trait):
     """
@@ -187,26 +196,11 @@ def joint_probability(people, one_gene, two_genes, have_trait):
             mother_gene = people_data[mother]["num_gene"]          
 
             # calculate each case of parent's gene
-            if father_gene == 0:  # father has no the-gene
-                zero_from_father = 1 - PROBS["mutation"]
-                one_from_father = PROBS["mutation"]
-            elif father_gene == 1:  # father has one the-gene
-                zero_from_father = 0.5  # 0.5*(1 - PROBS["mutation"]) + 0.5*(PROBS["mutation"])        
-                one_from_father = 0.5  # 0.5*(1 - PROBS["mutation"]) + 0.5*(PROBS["mutation"])
-            else:  # father_gene == 2  # father has two the-gene                
-                zero_from_father = PROBS["mutation"]
-                one_from_father = 1 - PROBS["mutation"]
-            
-            if mother_gene == 0:  # mother has no the-gene
-                zero_from_mother = 1 - PROBS["mutation"]
-                one_from_mother = PROBS["mutation"]
-            elif mother_gene == 1:  # mother has one the-gene
-                zero_from_mother = 0.5  # 0.5*(1 - PROBS["mutation"]) + 0.5*(PROBS["mutation"])        
-                one_from_mother = 0.5  # 0.5*(1 - PROBS["mutation"]) + 0.5*(PROBS["mutation"])
-            else:  # mother_gene == 2  # mother has two the-gene                
-                zero_from_mother = PROBS["mutation"]
-                one_from_mother = 1 - PROBS["mutation"]            
-            
+            one_from_father = parent_pass(father_gene)
+            zero_from_father = 1 - one_from_father
+            one_from_mother = parent_pass(mother_gene)
+            zero_from_mother = 1 - one_from_mother            
+                                        
             match people_data[person]["num_gene"]:
                 case 0:  # no gene from parents
                     prob_gene = zero_from_father * zero_from_mother
