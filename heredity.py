@@ -142,7 +142,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
     # print(f"one_gene = {one_gene}")
     # print(f"two_genes = {two_genes}")
     # print(f"have_trait = {have_trait}")
-    print(f"people = {people}")
+    # print(f"people = {people}")
 
     # create data base for each person
     people_data = {}
@@ -170,57 +170,58 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         people_data[person] = {"num_gene": num_gene, "trait": this_have_trait, 
                                "has_parents": this_has_parents}
     
-    print(f"people_data = {people_data}")
+    # print(f"people_data = {people_data}")
     
-    for person in people_data:        
+    acc_prob = 1
+    for person in people_data:
         if people_data[person]["has_parents"] == False:
         # w/o parents data, , i.e., independent probability
             prob_gene = PROBS["gene"][people_data[person]["num_gene"]]
             prob_trait = PROBS["trait"][people_data[person]["num_gene"]][people_data[person]["trait"]]
-            this_prob = prob_gene * prob_trait
-            print(f"person = {person}, prob_gene = {prob_gene}, prob_trait = {prob_trait}")
+            this_prob = prob_gene * prob_trait            
         else: 
         # w/ parents data            
+            father = people[person]["father"]
+            father_gene = people_data[father]["num_gene"]
+            mother = people[person]["mother"]
+            mother_gene = people_data[mother]["num_gene"]          
+
+            # calculate each case of parent's gene
+            if father_gene == 0:  # father has no the-gene
+                zero_from_father = 1 - PROBS["mutation"]
+                one_from_father = PROBS["mutation"]
+            elif father_gene == 1:  # father has one the-gene
+                zero_from_father = 0.5  # 0.5*(1 - PROBS["mutation"]) + 0.5*(PROBS["mutation"])        
+                one_from_father = 0.5  # 0.5*(1 - PROBS["mutation"]) + 0.5*(PROBS["mutation"])
+            else:  # father_gene == 2  # father has two the-gene                
+                zero_from_father = PROBS["mutation"]
+                one_from_father = 1 - PROBS["mutation"]
+            
+            if mother_gene == 0:  # mother has no the-gene
+                zero_from_mother = 1 - PROBS["mutation"]
+                one_from_mother = PROBS["mutation"]
+            elif mother_gene == 1:  # mother has one the-gene
+                zero_from_mother = 0.5  # 0.5*(1 - PROBS["mutation"]) + 0.5*(PROBS["mutation"])        
+                one_from_mother = 0.5  # 0.5*(1 - PROBS["mutation"]) + 0.5*(PROBS["mutation"])
+            else:  # mother_gene == 2  # mother has two the-gene                
+                zero_from_mother = PROBS["mutation"]
+                one_from_mother = 1 - PROBS["mutation"]            
+            
             match people_data[person]["num_gene"]:
                 case 0:  # no gene from parents
-                    # not from father                    
-                    father = people[person]["father"]
-                    father_gene = people_data[father]["num_gene"]
-                    if father_gene == 0:
-                        # father has no gene, as long as no mutation, the child won't have any
-                        prob_from_father = 1 - PROBS["mutation"]
-                    elif father_gene == 1:
-                        # father has one gene. either from the gene with mutation or from the not-gene without mutation
-                        prob_from_father = 0.5*(1 - PROBS["mutation"]) + 0.5*(PROBS["mutation"])
-                    else:  # father_gene == 2
-                        # father has two gene, only possibility is mutation
-                        prob_from_father = PROBS["mutation"]
-                    
-                    # not from mother
-                    mother = people[person]["mother"]
-                    mother_gene = people_data[mother]["num_gene"]
-                    if mother_gene == 0:
-                        # mother has no gene, as long as no mutation, the child won't have any
-                        prob_from_mother = 1 - PROBS["mutation"]
-                    elif mother_gene == 1:
-                        # mother has one gene. either from the gene with mutation or from the not-gene without mutation
-                        prob_from_mother = 0.5*(1 - PROBS["mutation"]) + 0.5*(PROBS["mutation"])
-                    else:  # mother_gene == 2
-                        # mother has two gene, only possibility is mutation
-                        prob_from_mother = PROBS["mutation"]
-
-                    prob_gene = prob_from_father * prob_from_mother
-                    prob_trait = PROBS["trait"][people_data[person]["num_gene"]][people_data[person]["trait"]]
-                    this_prob = prob_gene * prob_trait
-                    print(f"person = {person}, prob_gene = {prob_gene}, prob_trait = {prob_trait}")
-                # TO-DO
-                # case 1:
-                # case 2:
-
-    
-
-
-    raise NotImplementedError
+                    prob_gene = zero_from_father * zero_from_mother
+                case 1:  # one gene from parents                    
+                    prob_gene = one_from_father * zero_from_mother + one_from_mother * zero_from_father                                                            
+                case 2:  # two gene from parents
+                    prob_gene = one_from_father * one_from_mother
+            
+            prob_trait = PROBS["trait"][people_data[person]["num_gene"]][people_data[person]["trait"]]
+            this_prob = prob_gene * prob_trait            
+        
+        # print(f"person = {person}, prob_gene = {prob_gene}, prob_trait = {prob_trait}, this_prob = {this_prob}")
+        acc_prob = acc_prob * this_prob
+    # print(f"acc_prob = {acc_prob}")
+    return acc_prob    
 
 
 def update(probabilities, one_gene, two_genes, have_trait, p):
