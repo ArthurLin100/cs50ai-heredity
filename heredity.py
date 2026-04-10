@@ -138,7 +138,39 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone not in `one_gene` or `two_gene` does not have the gene, and
         * everyone in set `have_trait` has the trait, and
         * everyone not in set` have_trait` does not have the trait.
-    """
+    """    
+    num_people = len(people)
+    print(f"one_gene = {one_gene}")
+    print(f"two_genes = {two_genes}")
+    print(f"have_trait = {have_trait}")
+
+    # create data base for each people
+    people_data = {}
+    for person in people:
+        # find out how many genes
+        if person in one_gene:
+            num_gene = 1
+        elif person in two_genes:
+            num_gene = 2
+        else:
+            num_gene = 0
+        
+        # find out if the person has trait
+        if person in have_trait:
+            this_have_trait = "yes"
+        else: 
+            this_have_trait = "no"
+
+        people_data[person] = {"num_gene": num_gene, "trait": this_have_trait}
+    
+    print(f"people_data = {people_data}")
+    
+
+    # w/o parents data, i.e., independent probability
+
+    # w/ parents
+
+
     raise NotImplementedError
 
 
