@@ -138,15 +138,15 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone not in `one_gene` or `two_gene` does not have the gene, and
         * everyone in set `have_trait` has the trait, and
         * everyone not in set` have_trait` does not have the trait.
-    """    
-    num_people = len(people)
-    print(f"one_gene = {one_gene}")
-    print(f"two_genes = {two_genes}")
-    print(f"have_trait = {have_trait}")
+    """        
+    # print(f"one_gene = {one_gene}")
+    # print(f"two_genes = {two_genes}")
+    # print(f"have_trait = {have_trait}")
+    print(f"people = {people}")
 
-    # create data base for each people
+    # create data base for each person
     people_data = {}
-    for person in people:
+    for person in people:        
         # find out how many genes
         if person in one_gene:
             num_gene = 1
@@ -157,18 +157,67 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         
         # find out if the person has trait
         if person in have_trait:
-            this_have_trait = "yes"
+            this_have_trait = True
         else: 
-            this_have_trait = "no"
+            this_have_trait = False
 
-        people_data[person] = {"num_gene": num_gene, "trait": this_have_trait}
+        # find out if the person has parents data
+        if people[person]['mother'] == None:  # no parents
+            this_has_parents = False
+        else:
+            this_has_parents = True
+
+        people_data[person] = {"num_gene": num_gene, "trait": this_have_trait, 
+                               "has_parents": this_has_parents}
     
     print(f"people_data = {people_data}")
     
+    for person in people_data:        
+        if people_data[person]["has_parents"] == False:
+        # w/o parents data, , i.e., independent probability
+            prob_gene = PROBS["gene"][people_data[person]["num_gene"]]
+            prob_trait = PROBS["trait"][people_data[person]["num_gene"]][people_data[person]["trait"]]
+            this_prob = prob_gene * prob_trait
+            print(f"person = {person}, prob_gene = {prob_gene}, prob_trait = {prob_trait}")
+        else: 
+        # w/ parents data            
+            match people_data[person]["num_gene"]:
+                case 0:  # no gene from parents
+                    # not from father                    
+                    father = people[person]["father"]
+                    father_gene = people_data[father]["num_gene"]
+                    if father_gene == 0:
+                        # father has no gene, as long as no mutation, the child won't have any
+                        prob_from_father = 1 - PROBS["mutation"]
+                    elif father_gene == 1:
+                        # father has one gene. either from the gene with mutation or from the not-gene without mutation
+                        prob_from_father = 0.5*(1 - PROBS["mutation"]) + 0.5*(PROBS["mutation"])
+                    else:  # father_gene == 2
+                        # father has two gene, only possibility is mutation
+                        prob_from_father = PROBS["mutation"]
+                    
+                    # not from mother
+                    mother = people[person]["mother"]
+                    mother_gene = people_data[mother]["num_gene"]
+                    if mother_gene == 0:
+                        # mother has no gene, as long as no mutation, the child won't have any
+                        prob_from_mother = 1 - PROBS["mutation"]
+                    elif mother_gene == 1:
+                        # mother has one gene. either from the gene with mutation or from the not-gene without mutation
+                        prob_from_mother = 0.5*(1 - PROBS["mutation"]) + 0.5*(PROBS["mutation"])
+                    else:  # mother_gene == 2
+                        # mother has two gene, only possibility is mutation
+                        prob_from_mother = PROBS["mutation"]
 
-    # w/o parents data, i.e., independent probability
+                    prob_gene = prob_from_father * prob_from_mother
+                    prob_trait = PROBS["trait"][people_data[person]["num_gene"]][people_data[person]["trait"]]
+                    this_prob = prob_gene * prob_trait
+                    print(f"person = {person}, prob_gene = {prob_gene}, prob_trait = {prob_trait}")
+                # TO-DO
+                # case 1:
+                # case 2:
 
-    # w/ parents
+    
 
 
     raise NotImplementedError
